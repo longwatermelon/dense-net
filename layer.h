@@ -17,9 +17,8 @@ struct Layer {
     Matrix dZ;
     bool relu;
 
-    Layer(int n, int prev_n, int m, bool relu)
+    Layer(int n, int prev_n, bool relu)
         : n(n), W(Matrix(n, prev_n)), b(Matrix(n, 1)),
-          Z(Matrix(n, m)), A(Matrix(n, m)), dZ(Matrix(n, m)),
           relu(relu)
     {
         // random init W [-0.5,0.5]

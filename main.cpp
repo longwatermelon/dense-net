@@ -40,16 +40,16 @@ int main() {
     /* feature_scale(X); */
 
     vector<Layer> layers = {
-        Layer(NF, 1, M, false),
-        Layer(10, NF, M, false),
+        Layer(NF, 1, false),
+        Layer(10, NF, false),
         /* Layer(15, 25, M, false), */
-        Layer(NF_OUT, 10, M, false),
+        Layer(NF_OUT, 10, false),
     };
     layers[0].A = X;
     vector<pair<Matrix, Matrix>> grads(layers.size()); // (dW, db)
 
     double a = 0.0005;
-    double cost = mse_cost(layers.back().A, Y);
+    double cost = 1e10;
     int epoch = 0;
     while (cost > 0.1) {
         ++epoch;
