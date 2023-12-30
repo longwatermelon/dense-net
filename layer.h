@@ -57,7 +57,7 @@ inline void back_prop(Layer &l, const Layer &prev, const Layer *next,
         // output layer
         switch (lossfn) {
             case Loss::BinaryCrossentropy: l.dZ = l.A - Y; break;
-            case Loss::Mse: l.dZ = Y * (-2.) + l.A * 2.; break;
+            case Loss::Mse: l.dZ = (l.A - Y) * 2.; break;
         }
     } else {
         // hidden layer

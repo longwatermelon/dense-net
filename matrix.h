@@ -6,9 +6,8 @@ class Matrix {
 public:
     // column major
     Matrix(int rows, int cols) {
-        m_data.resize(cols);
         for (int i = 0; i < cols; ++i) {
-            m_data[i] = vector<double>(rows, 0.);
+            m_data.emplace_back(rows, 0.);
         }
     }
     Matrix() = default;
