@@ -8,7 +8,7 @@ public:
     Matrix(int rows, int cols) {
         m_data.resize(cols);
         for (int i = 0; i < cols; ++i) {
-            m_data[i] = vector<double>(rows);
+            m_data[i] = vector<double>(rows, 0.);
         }
     }
     Matrix() = default;

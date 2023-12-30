@@ -4,6 +4,11 @@
 #include <random>
 using namespace std;
 
+enum class Loss {
+    BinaryCrossentropy,
+    Mse,
+};
+
 struct Layer {
     int n;
     // b is a 1-col matrix
@@ -32,7 +37,7 @@ inline void forward_prop(Layer &l, Layer &prev)
     for (int i = 0; i < l.Z.cols(); ++i) {
         vector<double> &col = l.Z.get_col(i);
         for (int j = 0; j < col.size(); ++j)
-            col[j] += l.b.at(i, 0);
+            col[j] += l.b.at(j, 0);
     }
 
     l.A = l.Z;
@@ -46,12 +51,14 @@ inline void forward_prop(Layer &l, Layer &prev)
 }
 
 inline void back_prop(Layer &l, const Layer &prev, const Layer *next,
-                      const Matrix &Y, Matrix &dW, Matrix &db)
+                      const Matrix &Y, Matrix &dW, Matrix &db, Loss lossfn = Loss::BinaryCrossentropy)
 {
     if (!next) {
         // output layer
-        l.dZ = Y * -2. + l.A * 2.;
-        /* l.dZ = l.A - Y; */
+        switch (lossfn) {
+            case Loss::BinaryCrossentropy: l.dZ = l.A - Y; break;
+            case Loss::Mse: l.dZ = Y * (-2.) + l.A * 2.; break;
+        }
     } else {
         // hidden layer
         Matrix gprime(l.Z.rows(), l.Z.cols());

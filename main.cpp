@@ -1,9 +1,10 @@
 #include "layer.h"
+#include "util.h"
 #include <iostream>
 #define NF 3
 #define M 20
 
-double cost(const Matrix &A, const Matrix &Y) {
+double mse_cost(const Matrix &A, const Matrix &Y) {
     double res = 0;
     for (int i = 0; i < M; ++i) {
         for (int j = 0; j < NF; ++j) {
@@ -16,27 +17,41 @@ double cost(const Matrix &A, const Matrix &Y) {
 }
 
 int main() {
+    /* Matrix X(NF, M); */
+    /* Matrix Y(1, M); */
+    /* for (int i = 0; i < M; ++i) { */
+    /*     X.atref(0, i) = i; */
+    /*     X.atref(1, i) = i*i; */
+    /*     X.atref(2, i) = i*i*i; */
+    /*     Y.atref(0, i) = i + i*i + i*i*i; */
+    /* } */
+
     Matrix X(NF, M);
     Matrix Y(1, M);
     for (int i = 0; i < M; ++i) {
-        X.atref(0, i) = i;
-        X.atref(1, i) = i*i;
-        X.atref(2, i) = i*i*i;
-        Y.atref(0, i) = i + i*i + i*i*i;
+        X.atref(0, i) = (double)i / M;
+        X.atref(1, i) = (double)i*i / (M*M);
+        X.atref(2, i) = (double)i*i*i / (M*M*M);
+        Y.atref(0, i) = (double)(i + i*i + i*i*i);
     }
+
+    /* feature_scale(X); */
 
     Layer input(NF, 1, M, false);
     input.A = X;
-    Layer hidden0(25, NF, M, false);
-    Layer output(1, 25, M, false);
+    Layer hidden0(10, NF, M, false);
+    Layer output(1, 10, M, false);
 
-    double a = 0.01;
-    for (int i = 0; i < 10; ++i) {
+    float w = hidden0.W.at(0, 0);
+    float b = hidden0.b.at(0, 0);
+
+    double a = 0.0001;
+    for (int i = 0; i < 100000; ++i) {
         forward_prop(hidden0, input);
         forward_prop(output, hidden0);
 
         Matrix dW_out, db_out;
-        back_prop(output, hidden0, nullptr, Y, dW_out, db_out);
+        back_prop(output, hidden0, nullptr, Y, dW_out, db_out, Loss::Mse);
         Matrix dW_hid, db_hid;
         back_prop(hidden0, input, &output, Y, dW_hid, db_hid);
 
@@ -45,15 +60,17 @@ int main() {
         hidden0.W = hidden0.W - dW_hid * a;
         hidden0.b = hidden0.b - db_hid * a;
 
-        /* if ((i + 1) % 100 == 0) { */
-            cout << "epoch " << i + 1 << " | cost: " << cost(output.A, Y) << '\n';
-        /* } */
+        if ((i + 1) % 100 == 0) {
+            cout << "epoch " << i + 1 << " | cost: " << mse_cost(output.A, Y) << '\r';
+            flush(cout);
+        }
+    }
+    cout << '\n';
+
+    for (int i = 0; i < M; ++i) {
+        cout << output.A.at(0, i) * (M + M*M + M*M*M) << " VS " << Y.at(0, i) * (M + M*M + M*M*M) << '\n';
     }
 
-    for (int r = 0; r < output.A.rows(); ++r) {
-        for (int c = 0; c < output.A.cols(); ++c) {
-            cout << output.A.at(r, c) << ' ';
-        }
-        cout << '\n';
-    }
+    /* cout << hidden0.W.at(0, 0) << ' ' << hidden0.b.at(0, 0) << '\n'; */
+    /* cout << w << ' ' << b << '\n'; */
 }
