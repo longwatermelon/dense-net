@@ -1,3 +1,3 @@
 .PHONY: all
 all:
-	g++ -std=c++17 -ggdb -O2 main.cpp -fsanitize=address
+	g++ -std=c++17 -O2 -ggdb main.cpp -fsanitize=address

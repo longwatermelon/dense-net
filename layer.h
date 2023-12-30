@@ -2,6 +2,7 @@
 #include "matrix.h"
 #include <map>
 #include <random>
+#include <sstream>
 using namespace std;
 
 enum class Loss {
@@ -27,6 +28,43 @@ struct Layer {
                 W.atref(r, c) = (double)(rand() % 100) / 100. - .5;
             }
         }
+    }
+
+    Layer(const string &s) {
+        stringstream ss(s);
+        int prev_n;
+        ss >> n >> prev_n;
+        W = Matrix(n, prev_n);
+        b = Matrix(n, 1);
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < prev_n; ++j) {
+                ss >> W.atref(i, j);
+            }
+        }
+
+        for (int i = 0; i < n; ++i) {
+            ss >> b.atref(i, 0);
+        }
+
+        ss >> relu;
+    }
+
+    string save() const {
+        stringstream ss;
+        // n, prev_n
+        ss << n << ' ' << W.cols() << ' ';
+        for (int i = 0; i < W.rows(); ++i) {
+            for (int j = 0; j < W.cols(); ++j) {
+                ss << W.at(i, j) << ' ';
+            }
+        }
+
+        for (int i = 0; i < b.rows(); ++i) {
+            ss << b.at(i, 0) << ' ';
+        }
+
+        ss << relu;
+        return ss.str();
     }
 };
 
