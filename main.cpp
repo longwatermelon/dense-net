@@ -39,38 +39,45 @@ int main() {
 
     /* feature_scale(X); */
 
-    Layer input(NF, 1, M, false);
-    input.A = X;
-    Layer hidden0(10, NF, M, false);
-    Layer output(NF_OUT, 10, M, false);
+    vector<Layer> layers = {
+        Layer(NF, 1, M, false),
+        Layer(10, NF, M, false),
+        /* Layer(15, 25, M, false), */
+        Layer(NF_OUT, 10, M, false),
+    };
+    layers[0].A = X;
+    vector<pair<Matrix, Matrix>> grads(layers.size()); // (dW, db)
 
-    float w = hidden0.W.at(0, 0);
-    float b = hidden0.b.at(0, 0);
+    double a = 0.0005;
+    double cost = mse_cost(layers.back().A, Y);
+    int epoch = 0;
+    while (cost > 0.1) {
+        ++epoch;
+        for (int i = 1; i < layers.size(); ++i)
+            forward_prop(layers[i], layers[i - 1]);
 
-    double a = 0.0001;
-    for (int i = 0; i < 100000; ++i) {
-        forward_prop(hidden0, input);
-        forward_prop(output, hidden0);
+        for (int i = layers.size() - 1; i > 0; --i) {
+            back_prop(
+                layers[i], layers[i - 1], i == layers.size() - 1 ? nullptr : &layers[i + 1],
+                Y, grads[i].first, grads[i].second, Loss::BinaryCrossentropy
+            );
+        }
 
-        Matrix dW_out, db_out;
-        back_prop(output, hidden0, nullptr, Y, dW_out, db_out, Loss::Mse);
-        Matrix dW_hid, db_hid;
-        back_prop(hidden0, input, &output, Y, dW_hid, db_hid);
+        for (int i = 1; i < grads.size(); ++i) {
+            layers[i].W = layers[i].W - grads[i].first * a;
+            layers[i].b = layers[i].b - grads[i].second * a;
+        }
 
-        output.W = output.W - dW_out * a;
-        output.b = output.b - db_out * a;
-        hidden0.W = hidden0.W - dW_hid * a;
-        hidden0.b = hidden0.b - db_hid * a;
-
-        if ((i + 1) % 10000 == 0) {
-            printf("epoch %d | cost: %f\r", i + 1, mse_cost(output.A, Y));
+        cost = mse_cost(layers.back().A, Y);
+        if (epoch % 1000 == 0) {
+            printf("epoch %d | cost: %f\r", epoch, cost);
             fflush(stdout);
         }
     }
     cout << '\n';
 
     for (int i = 0; i < M; ++i) {
-        cout << output.A.at(0, i) << " VS " << Y.at(0, i) << '\n';
+        cout << layers.back().A.at(0, i) << " VS " << Y.at(0, i) << '\n';
     }
 
     /* cout << hidden0.W.at(0, 0) << ' ' << hidden0.b.at(0, 0) << '\n'; */
