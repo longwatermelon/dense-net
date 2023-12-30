@@ -69,6 +69,11 @@ int main() {
         }
 
         cost = mse_cost(layers.back().A, Y);
+        if (isnan(cost)) {
+            fprintf(stderr, "cost became nan");
+            exit(1);
+        }
+
         if (epoch % 1000 == 0) {
             printf("epoch %d | cost: %f\r", epoch, cost);
             fflush(stdout);
